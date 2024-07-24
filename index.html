@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マジェール語辞書</title>
+    <style>
+        @font-face {
+            font-family: 'Madueyer';
+            src: url('madueyer.ttf') format('truetype');
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .entry {
+            margin-bottom: 20px;
+        }
+        .entry-title {
+            font-weight: bold;
+        }
+        .translation {
+            margin-left: 20px;
+        }
+        .grammar {
+            margin-left: 20px;
+            font-style: italic;
+        }
+        .pagination {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .pagination button {
+            margin: 5px;
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            cursor: pointer;
+        }
+        .pagination button:hover {
+            background-color: #e9e9e9;
+        }
+        .madueyer-font {
+            font-family: 'Madueyer', Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <button id="toggle-font">Toggle Font</button>
+    <div id="dictionary-container"></div>
+    <div class="pagination" id="pagination-container"></div>
+
+    <script>
+        const wordsPerPage = 10;
+        let currentPage = 1;
+        let dictionaryData;
+
+        async function loadDictionary() {
+            try {
+                const response = await fetch('マジェール語辞書.json'); // JSONファイルのパスを指定
+                const data = await response.json();
+                dictionaryData = data.words;
+                displayDictionary();
+                createPagination();
+            } catch (error) {
+                console.error('Error loading JSON:', error);
+            }
+        }
+
+        function displayDictionary() {
+            const container = document.getElementById('dictionary-container');
+            container.innerHTML = ''; // Clear previous entries
+
+            const startIndex = (currentPage - 1) * wordsPerPage;
+            const endIndex = startIndex + wordsPerPage;
+            const wordsToDisplay = dictionaryData.slice(startIndex, endIndex);
+
+            wordsToDisplay.forEach(word => {
+                const entryDiv = document.createElement('div');
+                entryDiv.className = 'entry';
+
+                const entryTitle = document.createElement('div');
+                entryTitle.className = 'entry-title';
+                entryTitle.textContent = word.entry.form;
+                entryDiv.appendChild(entryTitle);
+
+                word.translations.forEach(translation => {
+                    const translationDiv = document.createElement('div');
+                    translationDiv.className = 'translation';
+                    translationDiv.textContent = `${translation.title}: ${translation.forms.join(', ')}`;
+                    entryDiv.appendChild(translationDiv);
+                });
+
+                const grammarDiv = document.createElement('div');
+                grammarDiv.className = 'grammar';
+                grammarDiv.textContent = `文法: ${word.grammar}`;
+                entryDiv.appendChild(grammarDiv);
+
+                container.appendChild(entryDiv);
+            });
+        }
+
+        function createPagination() {
+            const paginationContainer = document.getElementById('pagination-container');
+            paginationContainer.innerHTML = ''; // Clear previous buttons
+
+            const pageCount = Math.ceil(dictionaryData.length / wordsPerPage);
+
+            for (let i = 1; i <= pageCount; i++) {
+                const button = document.createElement('button');
+                button.textContent = i;
+                button.addEventListener('click', () => {
+                    currentPage = i;
+                    displayDictionary();
+                });
+                paginationContainer.appendChild(button);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDictionary);
+
+        document.getElementById('toggle-font').addEventListener('click', () => {
+            document.querySelectorAll('.entry-title').forEach(element => {
+                element.classList.toggle('madueyer-font');
+            });
+        });
+    </script>
+</body>
+</html>
